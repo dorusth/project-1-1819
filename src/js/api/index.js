@@ -10,6 +10,7 @@ export default class API {
 		baseURL = "https://zoeken.oba.nl/api/v1/",
 		key = "1e19898c87464e239192c8bfe422f280"
 	} = {}) {
+		this._context = null;
 		this._URL = CORSProxy
 			+ baseURL
 			+ "ENDPOINT" //will be `.replace`d later (is this a good practise?)
@@ -51,7 +52,7 @@ export default class API {
 
 		return {
 			endpoint,
-			query: `&${query}=${value.trim()}`,
+			query: encodeURI(`&${query}=${value.trim()}`),
 			max: Number(max),
 			pagesize: Math.min(
 				Number(max),
@@ -61,24 +62,28 @@ export default class API {
 
 	async _getRequestSpecifics (partial, options) {
 		if (partial === undefined) throw new Error("Failed to get request specifics. Did you forget a url?");
-		console.log(this._parsePartial(partial));
+
 		const {
 			endpoint,
 			query,
 			max,
 			pagesize
 		} = Object.assign({}, this._parsePartial(partial), options);
+		console.log(this._parsePartial(partial));
 		const url = this._URL.replace("ENDPOINT", endpoint) + query;
-		console.log(url);
-		const {count, context} = await this._ping(url);
+		const {count, context} = await this._ping(url, this._context);
 		const batches = Math.ceil(Math.min(max, count) / pagesize);
 		const builtURL = url + `&pagesize=${pagesize}&refine=true`;
 
-		return {batches, builtURL, context, count};
+		this._context = context;
+
+		return {batches, builtURL, count};
 	}
 
-	_ping (url) {
-		const builtURL = url + "&pagesize=1&refine=false";
+	_ping (url, context) {
+		const builtURL = (context !== null)
+			? url + `&pagesize=1&refine=false&rctx=${context}`
+			: url + `&pagesize=1&refine=false`;
 
 		return fetch(builtURL)
 			.then(detectPingError)
@@ -93,15 +98,15 @@ export default class API {
 		const {
 			batches,
 			builtURL,
-			context,
 			count
 		} = await this._getRequestSpecifics(partial, options);
 
 		if (count === 0) throw new Error(`No results found for '${partial}'.`);
 
-		return new PromiseStream(range(batches)
-				.map(index => builtURL + `&page=${index + 1}&rctx=${context}`)
-				.map(url => smartRequest(url)))
+		return new PromiseStream(
+				range(batches)
+					.map(index => builtURL + `&page=${index + 1}&rctx=${this._context}`)
+					.map(url => smartRequest(url)))
 			.pipe(XMLToJSON)
 			.pipe(cleanAquabrowserJSON)
 			.catch(API.logError);
@@ -111,7 +116,6 @@ export default class API {
 		const {
 			batches,
 			builtURL,
-			context,
 			count
 		} = await this._getRequestSpecifics(partial, options);
 
@@ -119,7 +123,7 @@ export default class API {
 
 		async function* iterator () {
 			const requests = range(batches)
-				.map(index => builtURL + `&page=${index + 1}&rctx=${context}`);
+				.map(index => builtURL + `&page=${index + 1}&rctx=${this._context}`);
 
 			while (requests.length > 0) {
 				const url = requests.shift();
@@ -137,14 +141,13 @@ export default class API {
 		const {
 			batches,
 			builtURL,
-			context,
 			count
 		} = await this._getRequestSpecifics(partial, options);
 
 		if (count === 0) throw new Error(`No results found for '${partial}'.`);
 
 		return range(batches)
-			.map(index => builtURL + `&page=${index + 1}&rctx=${context}`)
+			.map(index => builtURL + `&page=${index + 1}&rctx=${this._context}`)
 			.map(url => smartRequest(url)
 				.then(XMLToJSON)
 				.then(cleanAquabrowserJSON)
