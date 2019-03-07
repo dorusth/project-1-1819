@@ -1,9 +1,26 @@
-import scan from './scan.js'
+import {scan, stopScan} from './scan.js'
 
 const renders = {
 	el: document.querySelector('main'),
 	header: document.querySelector('header'),
-	home(data){
+	home(){
+		renders.el.innerHTML = `
+			<section class="home_banner">
+				<div>
+					<h1> Welkom bij OBA music </h1>
+					<form class="homeForm" action="#">
+						<input type="text" placeholder="Zoek naar muziek...">
+						<input type="submit" value="🔍">
+					</form>
+				</div>
+			</section>
+		`;
+		document.querySelector(".homeForm").addEventListener("submit", function(event){
+			event.preventDefault();
+			window.location.hash = "search/" + event.srcElement[0].value;
+		})
+	},
+	search(data){
 		let template = data.map(data => {
 			return(`
 				<article>
@@ -15,13 +32,53 @@ const renders = {
 				</article>
 			`)
 		})
-		renders.el.innerHTML = template.join('');
+		renders.el.innerHTML = `
+			<section>${template.join('')}</section>
+		`
 	},
 	barcode(){
 		renders.el.innerHTML = `
-			<video id="video" width="640" height="480" autoplay></video>
+			<video id="video" width="100%" height="100%" autoplay></video>
+			<a class="closeScan"> Scan code </a>
 		`
 		scan();
+		document.querySelector(".closeScan").addEventListener("click", function(event){
+			window.location.hash = "search/De 30 grootste successen van Dorus";
+		})
+	},
+	nfc(){
+		renders.el.innerHTML = `
+			<img src="./src/img/nfc_scan.svg" alt="scan">
+			<a class="closeScan"> Scan tag </a>
+		`
+		document.querySelector(".closeScan").addEventListener("click", function(event){
+			window.location.hash = "search/De 30 grootste successen van Dorus";
+		})
+	},
+	loading(){
+		console.log(this);
+		renders.el.innerHTML = `
+		<div class="sk-folding-cube">
+			<div class="sk-cube1 sk-cube"></div>
+			<div class="sk-cube2 sk-cube"></div>
+			<div class="sk-cube4 sk-cube"></div>
+			<div class="sk-cube3 sk-cube"></div>
+		</div>
+		`
+	},
+	error(){
+		renders.el.innerHTML =`
+		<section class="home_banner">
+			<div>
+				<h1>Oops...</h1>
+				<h2>Er lijken geen resultaten te zijn voor "${window.location.hash.split('/')[1]}"</h2>
+				<form class="homeForm" action="#">
+					<input type="text" placeholder="Zoek naar muziek...">
+					<input type="submit" value="🔍">
+				</form>
+			</div>
+		</section>
+		`
 	}
 }
 

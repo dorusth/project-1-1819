@@ -1,15 +1,33 @@
-function scan() {
-	var video = document.getElementById('video');
-
-	if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-		// Not adding `{ audio: true }` since we only want video now
-		navigator.mediaDevices.getUserMedia({
-			video: true
-		}).then(function(stream) {
-			//video.src = window.URL.createObjectURL(stream);
-			video.srcObject = stream;
-			video.play();
-		});
+let constraints = {
+	audio: false,
+	video: {
+		width: 1280,
+		height: 720,
+		facingMode: "environment"
 	}
+};
+
+function scan() {
+	navigator.mediaDevices.getUserMedia(constraints)
+		.then(function(mediaStream) {
+			let video = document.querySelector('video');
+			video.srcObject = mediaStream;
+			video.onloadedmetadata = function(e) {
+				video.play();
+			};
+		})
+		.catch(function(err) {
+			console.log(err.name + ": " + err.message);
+		}); // always check for errors at the end.
 }
-export default scan
+
+function stopScan() {
+	navigator.mediaDevices.getUserMedia(constraints)
+		.then(function(mediaStream) {
+			let track = mediaStream.getTracks()[0];
+			track.stop();
+			document.querySelector('main').innerHTML = "";
+		})
+}
+
+export {scan, stopScan}

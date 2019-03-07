@@ -11,14 +11,13 @@
 
 <body>
 	<header>
+		<a href="#"><img src="src/img/oba_logo.svg" alt="logo"></a>
 		<div>
-			<a class="scan" href="#"><img src="./src/img/barcode.svg" alt="scan barcode"></a>
-			<a href="#"><img src="./src/img/nfc.svg" alt="scan nfc"></a>
-		</div>
-		<img src="src/img/oba_logo.svg" alt="logo">
-		<div>
-			<form action="#">
+			<a class="scan" href="#barcode"><img src="./src/img/barcode.svg" alt="scan barcode"></a>
+			<a class="sscan" href="#nfc"><img src="./src/img/nfc.svg" alt="scan nfc"></a>
+			<form class="headerSearch" action="#">
 				<input type="text">
+				<input type="submit" style="display:none;">
 			</form>
 		</div>
 	</header>
