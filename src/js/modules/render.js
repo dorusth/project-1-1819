@@ -23,13 +23,13 @@ const renders = {
 	search(data){
 		let template = data.map(data => {
 			return(`
-				<article>
+				<a href="${data['detail-page']._text}"><article>
 					<img src="${data.coverimages.coverimage[1]._text}" alt="${data.titles.title._text}">
 					<div>
-						<a href="${data['detail-page']._text}"><h2>${data.titles.title._text}</h2></a>
+						<h2>${data.titles.title._text}</h2>
 						<p>${data.authors['main-author']._text}</p>
 					</div>
-				</article>
+				</article></a>
 			`)
 		})
 		renders.el.innerHTML = `
