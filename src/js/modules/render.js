@@ -48,7 +48,7 @@ const renders = {
 	},
 	nfc(){
 		renders.el.innerHTML = `
-			<img src="./src/img/nfc_scan.svg" alt="scan">
+			<img class="scanImg" src="./src/img/nfc_scan.svg" alt="scan">
 			<a class="closeScan"> Scan tag </a>
 		`
 		document.querySelector(".closeScan").addEventListener("click", function(event){
